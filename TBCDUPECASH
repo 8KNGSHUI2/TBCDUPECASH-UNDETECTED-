@@ -1,0 +1,200 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+
+-- Create ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ExploitGui"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Create Main Frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 300, 0, 200)
+MainFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
+MainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+-- Corner Radius
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 10)
+Corner.Parent = MainFrame
+
+-- Title Bar
+local TitleBar = Instance.new("TextLabel")
+TitleBar.Size = UDim2.new(1, 0, 0, 40)
+TitleBar.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+TitleBar.BorderSizePixel = 0
+TitleBar.Text = "💰 Payment Exploit"
+TitleBar.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleBar.TextSize = 18
+TitleBar.Font = Enum.Font.GothamBold
+TitleBar.Parent = MainFrame
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 10)
+TitleCorner.Parent = TitleBar
+
+-- Cash Counter
+local CashLabel = Instance.new("TextLabel")
+CashLabel.Size = UDim2.new(1, -20, 0, 30)
+CashLabel.Position = UDim2.new(0, 10, 0, 50)
+CashLabel.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+CashLabel.BorderSizePixel = 0
+CashLabel.Text = "Cash Farmed: $0"
+CashLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+CashLabel.TextSize = 16
+CashLabel.Font = Enum.Font.GothamBold
+CashLabel.Parent = MainFrame
+
+local CashCorner = Instance.new("UICorner")
+CashCorner.CornerRadius = UDim.new(0, 8)
+CashCorner.Parent = CashLabel
+
+-- Toggle Button
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Size = UDim2.new(1, -20, 0, 40)
+ToggleButton.Position = UDim2.new(0, 10, 0, 90)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+ToggleButton.BorderSizePixel = 0
+ToggleButton.Text = "OFF"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.TextSize = 18
+ToggleButton.Font = Enum.Font.GothamBold
+ToggleButton.Parent = MainFrame
+
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(0, 8)
+ToggleCorner.Parent = ToggleButton
+
+-- Status Label
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Size = UDim2.new(1, -20, 0, 25)
+StatusLabel.Position = UDim2.new(0, 10, 0, 140)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Text = "Status: Idle"
+StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+StatusLabel.TextSize = 14
+StatusLabel.Font = Enum.Font.Gotham
+StatusLabel.Parent = MainFrame
+
+-- Close Button
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 30, 0, 30)
+CloseButton.Position = UDim2.new(1, -35, 0, 5)
+CloseButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+CloseButton.BorderSizePixel = 0
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 18
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.Parent = MainFrame
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 6)
+CloseCorner.Parent = CloseButton
+
+-- Variables
+local isEnabled = false
+local cashFarmed = 0
+local farmLoop = nil
+
+-- Configuration
+local config = {
+    PlayerTeam = "Civillian",
+    ForText = "TAMBAY",
+    Signature = "Billionaire City Goverment",
+    Paycheck = 100000,
+    RawValue = "One Hundred Cash",
+    Bank = "Bank of The Billionaire City"
+}
+
+-- Function to find and fire payment remote
+local function triggerPayment()
+    local possibleNames = {
+        "PaycheckEvent",
+        "ClaimPaycheck",
+        "GetPay",
+        "ReceiveMoney",
+        "ProcessPayment",
+        "PayEvent"
+    }
+    
+    for _, name in ipairs(possibleNames) do
+        local remote = ReplicatedStorage:FindFirstChild(name)
+        if remote and remote:IsA("RemoteEvent") then
+            pcall(function()
+                remote:FireServer(config)
+            end)
+            return true
+        end
+    end
+    
+    for _, child in ipairs(ReplicatedStorage:GetDescendants()) do
+        if child:IsA("RemoteEvent") then
+            pcall(function()
+                child:FireServer(config)
+            end)
+        end
+    end
+    
+    return false
+end
+
+-- Update cash counter
+local function updateCashCounter()
+    cashFarmed = cashFarmed + config.Paycheck
+    CashLabel.Text = "Cash Farmed: $" .. tostring(cashFarmed)
+end
+
+-- Toggle function
+local function toggleFarm()
+    isEnabled = not isEnabled
+    
+    if isEnabled then
+        ToggleButton.Text = "ON"
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 255, 50)
+        StatusLabel.Text = "Status: Farming..."
+        
+        -- Start farm loop
+        farmLoop = task.spawn(function()
+            while isEnabled do
+                triggerPayment()
+                updateCashCounter()
+                task.wait(0.1) -- Farm every 0.1 seconds
+            end
+        end)
+    else
+        ToggleButton.Text = "OFF"
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+        StatusLabel.Text = "Status: Idle"
+        
+        -- Stop farm loop
+        if farmLoop then
+            task.cancel(farmLoop)
+            farmLoop = nil
+        end
+    end
+end
+
+-- Button connections
+ToggleButton.MouseButton1Click:Connect(toggleFarm)
+
+CloseButton.MouseButton1Click:Connect(function()
+    isEnabled = false
+    if farmLoop then
+        task.cancel(farmLoop)
+    end
+    ScreenGui:Destroy()
+end)
+
+-- Notification
+StatusLabel.Text = "Status: Ready!"
+task.wait(2)
+if StatusLabel then
+    StatusLabel.Text = "Status: Idle"
+end
