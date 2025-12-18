@@ -1,0 +1,310 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+
+-- Create ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "CashGui"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.DisplayOrder = 999
+
+local success = pcall(function()
+    ScreenGui.Parent = game:GetService("CoreGui")
+end)
+
+if not success then
+    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+end
+
+-- Create Main Frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 320, 0, 250)
+MainFrame.Position = UDim2.new(0.5, -160, 0.5, -125)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 12)
+Corner.Parent = MainFrame
+
+-- Title Bar
+local TitleBar = Instance.new("TextLabel")
+TitleBar.Size = UDim2.new(1, 0, 0, 45)
+TitleBar.BackgroundColor3 = Color3.fromRGB(10, 10, 20)
+TitleBar.BorderSizePixel = 0
+TitleBar.Text = "8KNGS DUPECASH"
+TitleBar.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleBar.TextSize = 18
+TitleBar.Font = Enum.Font.GothamBold
+TitleBar.Parent = MainFrame
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 12)
+TitleCorner.Parent = TitleBar
+
+-- Close Button
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 35, 0, 35)
+CloseButton.Position = UDim2.new(1, -40, 0, 5)
+CloseButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+CloseButton.BorderSizePixel = 0
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 16
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.Parent = MainFrame
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(1, 0)
+CloseCorner.Parent = CloseButton
+
+-- Cash Display
+local CashLabel = Instance.new("TextLabel")
+CashLabel.Size = UDim2.new(1, -20, 0, 35)
+CashLabel.Position = UDim2.new(0, 10, 0, 55)
+CashLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+CashLabel.BorderSizePixel = 0
+CashLabel.Text = "Cash: $0"
+CashLabel.TextColor3 = Color3.fromRGB(0, 255, 100)
+CashLabel.TextSize = 16
+CashLabel.Font = Enum.Font.GothamBold
+CashLabel.Parent = MainFrame
+
+local CashCorner = Instance.new("UICorner")
+CashCorner.CornerRadius = UDim.new(0, 8)
+CashCorner.Parent = CashLabel
+
+-- Dupe Cash Button
+local DupeCashButton = Instance.new("TextButton")
+DupeCashButton.Size = UDim2.new(1, -20, 0, 50)
+DupeCashButton.Position = UDim2.new(0, 10, 0, 100)
+DupeCashButton.BackgroundColor3 = Color3.fromRGB(50, 200, 100)
+DupeCashButton.BorderSizePixel = 0
+DupeCashButton.Text = " Dupe Cash"
+DupeCashButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+DupeCashButton.TextSize = 16
+DupeCashButton.Font = Enum.Font.GothamBold
+DupeCashButton.Parent = MainFrame
+
+local DupeCashCorner = Instance.new("UICorner")
+DupeCashCorner.CornerRadius = UDim.new(0, 8)
+DupeCashCorner.Parent = DupeCashButton
+
+-- Auto Dupe Button
+local AutoDupeButton = Instance.new("TextButton")
+AutoDupeButton.Size = UDim2.new(1, -20, 0, 45)
+AutoDupeButton.Position = UDim2.new(0, 10, 0, 160)
+AutoDupeButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+AutoDupeButton.BorderSizePixel = 0
+AutoDupeButton.Text = "AUTO DUPE: OFF"
+AutoDupeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AutoDupeButton.TextSize = 16
+AutoDupeButton.Font = Enum.Font.GothamBold
+AutoDupeButton.Parent = MainFrame
+
+local AutoDupeCorner = Instance.new("UICorner")
+AutoDupeCorner.CornerRadius = UDim.new(0, 8)
+AutoDupeCorner.Parent = AutoDupeButton
+
+-- Status Label
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Size = UDim2.new(1, -20, 0, 30)
+StatusLabel.Position = UDim2.new(0, 10, 1, -35)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Text = "Status: Ready"
+StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+StatusLabel.TextSize = 11
+StatusLabel.Font = Enum.Font.Gotham
+StatusLabel.TextWrapped = true
+StatusLabel.Parent = MainFrame
+
+-- Variables
+local isAutoDuping = false
+local dupeLoop = nil
+local totalDuped = 0
+
+-- Civilian config with 10K
+local civilianConfig = {
+    PlayerTeam = "Civillian",
+    ForText = "TAMBAY",
+    SignedText = "Billionaire City Goverment",
+    Paycheck = 10000,
+    RawValue = "Ten Thousand Cash",
+    BankName = "Bank Of The Billionaire City"
+}
+
+-- Get current cash
+local function getCurrentCash()
+    if LocalPlayer:FindFirstChild("leaderstats") then
+        local cash = LocalPlayer.leaderstats:FindFirstChild("Cash")
+        if cash then
+            return cash.Value
+        end
+    end
+    return 0
+end
+
+-- Update cash display
+local function updateCashDisplay()
+    local cash = getCurrentCash()
+    CashLabel.Text = "💵 Cash: $" .. tostring(cash)
+end
+
+-- Function to dupe cash
+local function dupeCash()
+    StatusLabel.Text = "Status: 💰 Duping $10,000..."
+    StatusLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
+    
+    local initialCash = getCurrentCash()
+    local fired = 0
+    
+    -- Target specific remotes from the image
+    local targetRemotes = {
+        "StartHarvest",
+        "GiveAyuda",
+        "",
+        "",
+        ""
+    }
+    
+    -- Method 1: Fire target remotes with civilian paycheck config
+    for _, remoteName in ipairs(targetRemotes) do
+        local remote = ReplicatedStorage:FindFirstChild(remoteName, true)
+        if remote and remote:IsA("RemoteEvent") then
+            pcall(function()
+                -- Fire with different combinations
+                remote:FireServer(civilianConfig)
+                remote:FireServer("Civillian", 10000)
+                remote:FireServer({
+                    PlayerTeam = "Civillian",
+                    ForText = "TAMBAY",
+                    SignedText = "Billionaire City Goverment",
+                    Paycheck = 10000,
+                    RawValue = "Ten Thousand Cash",
+                    BankName = "Bank Of The Billionaire City"
+                })
+                remote:FireServer(10000)
+                remote:FireServer({amount = 10000})
+                remote:FireServer({Cash = 10000})
+                fired = fired + 1
+            end)
+        end
+    end
+    
+    -- Method 2: Focus on BuyToolEvent (likely handles transactions)
+    local buyToolEvent = ReplicatedStorage:FindFirstChild("StartHarvest", true)
+    if buyToolEvent and buyToolEvent:IsA("RemoteEvent") then
+        pcall(function()
+            -- Try negative cost (refund exploit)
+            buyToolEvent:FireServer({cost = -10000})
+            buyToolEvent:FireServer({price = -10000})
+            buyToolEvent:FireServer("refund", 10000)
+            buyToolEvent:FireServer({action = "refund", amount = 10000})
+            -- Try direct cash add
+            buyToolEvent:FireServer({add_cash = 10000})
+            buyToolEvent:FireServer({cash = 10000})
+        end)
+    end
+    
+    -- Method 3: BillConfirmEvent (might confirm transactions)
+    local billConfirmEvent = ReplicatedStorage:FindFirstChild("GiveAyuda", true)
+    if billConfirmEvent and billConfirmEvent:IsA("RemoteEvent") then
+        pcall(function()
+            billConfirmEvent:FireServer(true, 10000)
+            billConfirmEvent:FireServer({confirmed = true, amount = 10000})
+            billConfirmEvent:FireServer(civilianConfig)
+        end)
+    end
+    
+    -- Method 4: Try direct leaderstats modification
+    pcall(function()
+        if LocalPlayer:FindFirstChild("leaderstats") then
+            local cash = LocalPlayer.leaderstats:FindFirstChild("Cash")
+            if cash then
+                cash.Value = cash.Value + 10000
+            end
+        end
+    end)
+    
+    task.wait(0.3)
+    
+    -- Check if cash increased
+    local newCash = getCurrentCash()
+    if newCash > initialCash then
+        local gained = newCash - initialCash
+        totalDuped = totalDuped + gained
+        StatusLabel.Text = "Status: ✅ +$" .. gained .. " | Total: $" .. totalDuped
+        StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 100)
+    else
+        StatusLabel.Text = "Status: 🔥 Fired " .. fired .. " target remotes"
+        StatusLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
+    end
+    
+    updateCashDisplay()
+end
+
+-- Dupe Cash Button
+DupeCashButton.MouseButton1Click:Connect(function()
+    dupeCash()
+end)
+
+-- Auto Dupe Toggle
+AutoDupeButton.MouseButton1Click:Connect(function()
+    isAutoDuping = not isAutoDuping
+    
+    if isAutoDuping then
+        AutoDupeButton.Text = "🟢 AUTO DUPE: ON"
+        AutoDupeButton.BackgroundColor3 = Color3.fromRGB(50, 255, 50)
+        StatusLabel.Text = "Status: 🔥 Auto duping cash..."
+        StatusLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
+        
+        dupeLoop = task.spawn(function()
+            while isAutoDuping do
+                dupeCash()
+                task.wait(0.5)
+            end
+        end)
+    else
+        AutoDupeButton.Text = "🔴 AUTO DUPE: OFF"
+        AutoDupeButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+        StatusLabel.Text = "Status: Stopped | Total: $" .. totalDuped
+        StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+        
+        if dupeLoop then
+            task.cancel(dupeLoop)
+            dupeLoop = nil
+        end
+    end
+end)
+
+-- Close Button
+CloseButton.MouseButton1Click:Connect(function()
+    if isAutoDuping then
+        isAutoDuping = false
+        if dupeLoop then
+            task.cancel(dupeLoop)
+        end
+    end
+    ScreenGui:Destroy()
+end)
+
+-- Auto-update cash display
+task.spawn(function()
+    while task.wait(1) do
+        if ScreenGui.Parent then
+            updateCashDisplay()
+        else
+            break
+        end
+    end
+end)
+
+-- Initial update
+updateCashDisplay()
+StatusLabel.Text = "Status: Ready! Click to dupe $10K"
+StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 100)
